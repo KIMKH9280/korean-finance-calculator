@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dividend Calculator{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>계산기</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="menu-section">
+                <div class="menu-item fixed">
+                    <span class="menu-icon">⭐</span>
+                    <span class="menu-text">인기 계산기</span>
+                </div>
+                <div class="submenu">
+                    <a href="/loan/loan-interest-calculator" class="submenu-item">대출 이자 계산기</a>
+                    <a href="/salary/net-salary-calculator" class="submenu-item">연봉 실수령액 계산기</a>
+                    <a href="/finance/compound-interest-calculator" class="submenu-item">복리 계산기</a>
+                </div>
+            </div>
+            <div class="menu-section">
+                <a href="/finance" class="menu-item">
+                    <span class="menu-icon">▶</span>
+                    <span class="menu-text">금융 · 투자</span>
+                </a>
+                <div class="submenu">
+                    <a href="/finance/dividend-calculator" class="submenu-item">배당금 계산기</a>
+                    <a href="/finance/compound-interest-calculator" class="submenu-item">복리 계산기</a>
+                    <a href="/finance/stock-return-calculator" class="submenu-item">주식 수익률 계산기</a>
+                    <a href="/finance/average-price-calculator" class="submenu-item">평단가 계산기</a>
+                </div>
+            </div>
+            <div class="menu-section">
+                <a href="/loan" class="menu-item">
+                    <span class="menu-icon">▶</span>
+                    <span class="menu-text">대출 · 이자</span>
+                </a>
+                <div class="submenu">
+                    <a href="/loan/loan-interest-calculator" class="submenu-item">대출 이자 계산기</a>
+                    <a href="/loan/equal-principal-interest-calculator" class="submenu-item">원리금균등 계산기</a>
+                    <a href="/loan/equal-principal-calculator" class="submenu-item">원금균등 계산기</a>
+                </div>
+            </div>
+            <div class="menu-section">
+                <a href="/real-estate" class="menu-item">
+                    <span class="menu-icon">▶</span>
+                    <span class="menu-text">부동산</span>
+                </a>
+                <div class="submenu">
+                    <a href="/real-estate/rent-to-monthly-calculator" class="submenu-item">전세·월세 전환 계산기</a>
+                    <a href="/real-estate/acquisition-tax-calculator" class="submenu-item">취득세 계산기</a>
+                    <a href="/real-estate/brokerage-fee-calculator" class="submenu-item">중개수수료 계산기</a>
+                </div>
+            </div>
+            <div class="menu-section">
+                <a href="/salary" class="menu-item">
+                    <span class="menu-icon">▶</span>
+                    <span class="menu-text">직장인 · 세금</span>
+                </a>
+                <div class="submenu">
+                    <a href="/salary/net-salary-calculator" class="submenu-item">연봉 실수령액 계산기</a>
+                    <a href="/salary/retirement-pay-calculator" class="submenu-item">퇴직금 계산기</a>
+                    <a href="/salary/vat-calculator" class="submenu-item">부가세 계산기</a>
+                </div>
+            </div>
+            <div class="menu-section">
+                <a href="/life" class="menu-item">
+                    <span class="menu-icon">▶</span>
+                    <span class="menu-text">생활</span>
+                </a>
+                <div class="submenu">
+                    <a href="/life/bmi-calculator" class="submenu-item">BMI 계산기</a>
+                    <a href="/life/age-calculator" class="submenu-item">만 나이 계산기</a>
+                    <a href="/life/d-day-calculator" class="submenu-item">디데이 계산기</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <div class="main-area">
+        <div class="main-content">
+            <header class="header">
+                <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+                <h1>{% block page_title %}계산기{% endblock %}</h1>
+            </header>
+            <main>
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+        <aside id="ad-area">
+            <div class="ad-placeholder">
+                <h3>광고</h3>
+                <p>여기에 광고를 삽입하세요.</p>
+                <!-- 예시 광고 이미지 -->
+                <img src="https://via.placeholder.com/300x250?text=Ad" alt="광고" style="width: 100%; height: auto;">
+            </div>
+        </aside>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

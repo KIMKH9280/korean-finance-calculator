@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}디데이 계산기{% endblock %}
+
+{% block page_title %}디데이 계산기{% endblock %}
+
+{% block content %}
+<div class="dd-card">
+	<header class="dd-head">
+		<h2>디데이 계산기</h2>
+		<p>목표일까지 남은 일수/지나간 일수를 바로 확인하세요.</p>
+	</header>
+
+	<div class="dd-form">
+		<div class="dd-field">
+			<label for="target_date">목표 날짜</label>
+			<input type="date" id="target_date">
+		</div>
+		<div class="dd-actions">
+			<button type="button" class="dd-btn" id="dd-calc">계산하기</button>
+		</div>
+	</div>
+
+	<div class="dd-result" id="dd-result" hidden>
+		<div class="dd-row dd-row-total">
+			<span class="dd-label" id="dd-label">-</span>
+			<span class="dd-value" id="dd-days">-</span>
+		</div>
+		<div class="dd-row">
+			<span class="dd-label">오늘 날짜</span>
+			<span class="dd-value" id="dd-today">-</span>
+		</div>
+	</div>
+</div>
+
+<style>
+.dd-card { max-width: 520px; margin: 0 auto; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+.dd-head h2 { font-size: 24px; margin-bottom: 6px; color: #343a40; }
+.dd-head p { color: #6c757d; margin-bottom: 12px; }
+.dd-form { display: grid; gap: 10px; margin-bottom: 12px; }
+.dd-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.dd-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+.dd-actions { display: flex; justify-content: flex-start; }
+.dd-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 10px 14px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.dd-btn:hover { background: #157347; }
+.dd-result { border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden; background: #f8f9fa; }
+.dd-row { display: grid; grid-template-columns: 1fr auto; padding: 10px 12px; border-bottom: 1px solid #e9ecef; }
+.dd-row:last-child { border-bottom: none; }
+.dd-row-total { background: #eef4ff; }
+.dd-label { color: #495057; font-weight: 600; }
+.dd-value { color: #343a40; font-weight: 600; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const fmtDate = (d)=> `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+	document.getElementById('target_date').value = fmtDate(new Date());
+
+	document.getElementById('dd-calc').addEventListener('click', () => {
+		const val = document.getElementById('target_date').value;
+		if(!val) { alert('날짜를 선택하세요.'); return; }
+		const target = new Date(val + 'T00:00:00');
+		const today = new Date();
+		const oneDay = 1000*60*60*24;
+		const diff = Math.floor((target - new Date(fmtDate(today)+'T00:00:00'))/oneDay);
+		const label = diff === 0 ? 'D-Day' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
+		document.getElementById('dd-label').textContent = label;
+		document.getElementById('dd-days').textContent = diff === 0 ? '오늘입니다' : diff > 0 ? `남은 ${diff}일` : `${Math.abs(diff)}일 지남`;
+		document.getElementById('dd-today').textContent = fmtDate(today);
+		document.getElementById('dd-result').hidden = false;
+	});
+});
+</script>
+{% endblock %}

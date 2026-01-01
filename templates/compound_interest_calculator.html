@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}복리 계산기{% endblock %}
+
+{% block page_title %}복리 계산기{% endblock %}
+
+{% block content %}
+{% set active_mode = (request.form.get('mode') or (result.mode if result and result.mode is defined else 'basic')) %}
+
+<div class="ci-wrap" data-initial-mode="{{ active_mode }}">
+    <div class="ci-card">
+        <div class="ci-topbar">
+            <div class="ci-tabs" role="tablist" aria-label="복리 계산기 모드">
+                <button type="button" class="ci-tab" data-tab="basic" role="tab" aria-selected="false">기본</button>
+                <button type="button" class="ci-tab" data-tab="installment" role="tab" aria-selected="false">적립식</button>
+            </div>
+            <button type="button" class="ci-currency-btn" aria-label="화폐 설정">⚙ 화폐 설정</button>
+        </div>
+
+        <h2 class="ci-title">{% if active_mode == 'installment' %}적립식 복리 계산기{% else %}복리 계산기{% endif %}</h2>
+
+        {% if result and 'error' in result %}
+            <div class="ci-error">{{ result.error }}</div>
+        {% endif %}
+
+        <section class="ci-panel" data-panel="basic" aria-label="기본 복리">
+            <form method="post" class="ci-form">
+                <input type="hidden" name="mode" value="basic">
+
+                <div class="ci-field">
+                    <label class="ci-label" for="basic_principal">초기 금액 (₩)</label>
+                    <input class="ci-input" type="number" id="basic_principal" name="basic_principal" min="0" step="1000" value="{{ request.form.get('basic_principal', '1000000') }}" required>
+                </div>
+
+                <div class="ci-field">
+                    <label class="ci-label" for="basic_period">복리 횟수 (기간)</label>
+                    <input class="ci-input" type="number" id="basic_period" name="basic_period" min="1" step="1" value="{{ request.form.get('basic_period', '20') }}" required>
+                </div>
+
+                <div class="ci-field">
+                    <label class="ci-label" for="basic_rate">수익률 (%)</label>
+                    <input class="ci-input" type="number" id="basic_rate" name="basic_rate" min="0" step="0.01" value="{{ request.form.get('basic_rate', '5') }}" required>
+                </div>
+
+                <div class="ci-actions">
+                    <button type="submit" class="ci-btn">계산하기</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="ci-panel" data-panel="installment" aria-label="적립식 복리">
+            <form method="post" class="ci-form">
+                <input type="hidden" name="mode" value="installment">
+
+                <div class="ci-field">
+                    <label class="ci-label" for="inst_start_amount">시작 금액 (₩)</label>
+                    <input class="ci-input" type="number" id="inst_start_amount" name="inst_start_amount" min="0" step="1000" value="{{ request.form.get('inst_start_amount', '100000') }}" required>
+                </div>
+
+                <div class="ci-field">
+                    <label class="ci-label" for="inst_monthly_contribution">매월 적립 금액 (₩)</label>
+                    <div class="ci-helper">* 두 번째 달부터 원금에 가산됩니다.</div>
+                    <input class="ci-input" type="number" id="inst_monthly_contribution" name="inst_monthly_contribution" min="0" step="1000" value="{{ request.form.get('inst_monthly_contribution', '100000') }}" required>
+                </div>
+
+                <div class="ci-field">
+                    <div class="ci-row">
+                        <span class="ci-label">투자 기간</span>
+                        <div class="ci-radio">
+                            <label><input type="radio" name="inst_period_unit" value="years" {% if request.form.get('inst_period_unit', 'years') == 'years' %}checked{% endif %}> 년</label>
+                            <label><input type="radio" name="inst_period_unit" value="months" {% if request.form.get('inst_period_unit') == 'months' %}checked{% endif %}> 개월</label>
+                        </div>
+                    </div>
+                    <input class="ci-input" type="number" id="inst_period_value" name="inst_period_value" min="1" step="1" value="{{ request.form.get('inst_period_value', '3') }}" required>
+                </div>
+
+                <div class="ci-field">
+                    <div class="ci-row">
+                        <span class="ci-label">이자율</span>
+                        <div class="ci-radio">
+                            <label><input type="radio" name="inst_rate_unit" value="year" {% if request.form.get('inst_rate_unit', 'year') == 'year' %}checked{% endif %}> 연</label>
+                            <label><input type="radio" name="inst_rate_unit" value="month" {% if request.form.get('inst_rate_unit') == 'month' %}checked{% endif %}> 월</label>
+                        </div>
+                    </div>
+                    <input class="ci-input" type="number" id="inst_rate_value" name="inst_rate_value" min="0" step="0.01" value="{{ request.form.get('inst_rate_value', '5') }}" required>
+                </div>
+
+                <div class="ci-field">
+                    <label class="ci-label" for="inst_compounding_method">복리 방식</label>
+                    <select class="ci-select" id="inst_compounding_method" name="inst_compounding_method">
+                        <option value="annual" {% if request.form.get('inst_compounding_method', 'annual') == 'annual' %}selected{% endif %}>연복리</option>
+                        <option value="monthly" {% if request.form.get('inst_compounding_method') == 'monthly' %}selected{% endif %}>월복리</option>
+                    </select>
+                </div>
+
+                <div class="ci-actions">
+                    <button type="submit" class="ci-btn">계산하기</button>
+                </div>
+            </form>
+        </section>
+
+        <div class="ci-results" aria-label="계산 결과">
+            <div class="ci-results-grid">
+                <div class="ci-result">
+                    <div class="ci-result-label">총 수익</div>
+                    <div class="ci-result-value">{% if result and result.total_profit is defined %}{{ result.total_profit }}{% else %}-{% endif %}</div>
+                </div>
+                <div class="ci-result">
+                    <div class="ci-result-label">최종 금액</div>
+                    <div class="ci-result-value">{% if result and result.final_amount is defined %}{{ result.final_amount }}{% else %}-{% endif %}</div>
+                </div>
+            </div>
+
+            {% if result and result.rows is defined and result.rows %}
+            <div class="ci-table-wrap">
+                <table class="ci-table" aria-label="수익 상세">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>수익 (₩)</th>
+                            <th>총액 (₩)</th>
+                            <th>수익률</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in result.rows %}
+                        <tr>
+                            <td>{{ row.idx }}</td>
+                            <td class="ci-pos">{{ row.profit }}</td>
+                            <td>{{ row.total }}</td>
+                            <td>{{ row.return_rate }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.ci-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.ci-card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 14px;
+    padding: 22px 22px 18px;
+    color: #212529;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.ci-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.ci-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    max-width: 420px;
+}
+
+.ci-tab {
+    background: transparent;
+    border: none;
+    color: #6c757d;
+    font-weight: 700;
+    padding: 12px 10px;
+    border-bottom: 2px solid #dee2e6;
+    cursor: pointer;
+}
+
+.ci-tab.is-active {
+    color: #198754;
+    border-bottom-color: #198754;
+}
+
+.ci-currency-btn {
+    background: transparent;
+    border: 1px solid #ced4da;
+    color: #495057;
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ci-title {
+    font-size: 36px;
+    margin: 6px 0 16px;
+    font-weight: 800;
+}
+
+.ci-error {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid #f5c2c7;
+    background: #f8d7da;
+    color: #842029;
+    border-radius: 8px;
+}
+
+.ci-panel.is-hidden {
+    display: none;
+}
+
+.ci-form {
+    display: grid;
+    gap: 14px;
+}
+
+.ci-field {
+    display: grid;
+    gap: 6px;
+}
+
+.ci-label {
+    font-weight: 700;
+    color: #212529;
+}
+
+.ci-helper {
+    color: #6c757d;
+    font-size: 13px;
+    margin-top: -2px;
+}
+
+.ci-input,
+.ci-select {
+    width: 100%;
+    padding: 14px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    background: #fff;
+    color: #212529;
+    font-size: 15px;
+    outline: none;
+}
+
+.ci-input:focus,
+.ci-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+}
+
+.ci-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ci-radio {
+    display: inline-flex;
+    gap: 14px;
+    color: #495057;
+    font-weight: 600;
+}
+
+.ci-radio input {
+    margin-right: 6px;
+}
+
+.ci-btn {
+    width: 100%;
+    border: 1px solid #198754;
+    background: #198754;
+    color: #fff;
+    border-radius: 6px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.ci-btn:hover {
+    background: #157347;
+}
+
+.ci-btn:active {
+    transform: translateY(1px);
+}
+
+.ci-results {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #dee2e6;
+}
+
+.ci-results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.ci-result {
+    padding: 12px 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    text-align: center;
+    background: #f8f9fa;
+}
+
+.ci-result-label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #495057;
+}
+
+.ci-result-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: #198754;
+}
+
+.ci-table-wrap {
+    margin-top: 20px;
+    border-top: 1px solid #dee2e6;
+    padding-top: 16px;
+}
+
+.ci-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    color: #212529;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ci-table th,
+.ci-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left;
+    font-size: 14px;
+}
+
+.ci-table th {
+    color: #6c757d;
+    font-weight: 700;
+    background: #f8f9fa;
+}
+
+.ci-table tbody tr:nth-child(odd) {
+    background: #fcfcfd;
+}
+
+.ci-table tbody tr:hover {
+    background: #f2f5f8;
+}
+
+.ci-table td:nth-child(1) {
+    width: 50px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.ci-table td:nth-child(2),
+.ci-table td:nth-child(3) {
+    text-align: right;
+}
+
+.ci-table td:nth-child(4) {
+    text-align: right;
+    width: 90px;
+}
+
+.ci-pos {
+    color: #198754;
+    font-weight: 700;
+}
+
+@media (max-width: 520px) {
+    .ci-title {
+        font-size: 30px;
+    }
+
+    .ci-topbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ci-tabs {
+        max-width: none;
+    }
+
+    .ci-results-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+(function () {
+    const wrap = document.querySelector('.ci-wrap');
+    if (!wrap) return;
+
+    const initialMode = wrap.getAttribute('data-initial-mode') || 'basic';
+    const tabs = Array.from(document.querySelectorAll('.ci-tab'));
+    const panels = Array.from(document.querySelectorAll('.ci-panel'));
+    const title = document.querySelector('.ci-title');
+
+    function setMode(mode) {
+        tabs.forEach((tab) => {
+            const isActive = tab.getAttribute('data-tab') === mode;
+            tab.classList.toggle('is-active', isActive);
+            tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        panels.forEach((panel) => {
+            const isActive = panel.getAttribute('data-panel') === mode;
+            panel.classList.toggle('is-hidden', !isActive);
+        });
+
+        if (title) {
+            title.textContent = mode === 'installment' ? '적립식 복리 계산기' : '복리 계산기';
+        }
+    }
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => setMode(tab.getAttribute('data-tab')));
+    });
+
+    setMode(initialMode);
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}원금균등 계산기{% endblock %}
+
+{% block page_title %}원금균등 계산기{% endblock %}
+
+{% block content %}
+<div class="ep-card">
+	<header class="ep-head">
+		<h2>원금 균등 상환 계산기</h2>
+		<p>매월 동일한 원금을 상환할 때 월 상환금 변화를 빠르게 확인하세요.</p>
+	</header>
+
+	<section class="ep-guide">
+		<h3>계산 방법</h3>
+		<ul>
+			<li>월 이자율 = 연이자율 ÷ 12</li>
+			<li>월 원금 = 대출원금 ÷ 개월수</li>
+			<li>월 이자 = 남은 원금 × 월 이자율</li>
+			<li>월 상환금 = 월 원금 + 월 이자</li>
+			<li>총 상환액 = 모든 월 상환금의 합</li>
+		</ul>
+		<p class="ep-note">수수료·보험료 등 부대비용은 제외한 단순 계산입니다.</p>
+	</section>
+
+	<div class="ep-form">
+		<div class="ep-grid">
+			<div class="ep-field">
+				<label for="loan_amount">대출 금액 (원)</label>
+				<input type="text" id="loan_amount" inputmode="numeric" placeholder="예: 50,000,000">
+			</div>
+			<div class="ep-field">
+				<label for="interest_rate">연 이자율 (%)</label>
+				<input type="text" id="interest_rate" inputmode="decimal" placeholder="예: 4.2">
+			</div>
+			<div class="ep-field">
+				<label for="loan_term">대출 기간 (년)</label>
+				<input type="text" id="loan_term" inputmode="numeric" placeholder="예: 20">
+			</div>
+		</div>
+		<div class="ep-actions">
+			<button type="button" class="ep-btn" id="ep-calc">상환금 계산하기</button>
+		</div>
+	</div>
+
+	<div class="ep-result" id="ep-result" hidden>
+		<div class="ep-result-grid">
+			<div class="ep-stat">
+				<span class="ep-label">첫 달 상환금</span>
+				<strong class="ep-value" id="first-payment">-</strong>
+			</div>
+			<div class="ep-stat">
+				<span class="ep-label">마지막 달 상환금</span>
+				<strong class="ep-value" id="last-payment">-</strong>
+			</div>
+			<div class="ep-stat">
+				<span class="ep-label">총 상환액</span>
+				<strong class="ep-value" id="total-paid">-</strong>
+			</div>
+			<div class="ep-stat">
+				<span class="ep-label">총 이자</span>
+				<strong class="ep-value" id="total-interest">-</strong>
+			</div>
+			<div class="ep-stat">
+				<span class="ep-label">기간 (개월)</span>
+				<strong class="ep-value" id="total-months">-</strong>
+			</div>
+		</div>
+
+		<div class="ep-table-wrap" id="ep-table-wrap" hidden>
+			<div class="ep-table-head">상환 스냅샷 (최대 12개월)</div>
+			<table class="ep-table" aria-label="원금 균등 상환 스케줄">
+				<thead>
+					<tr>
+						<th>회차</th>
+						<th>월 상환금</th>
+						<th>이자</th>
+						<th>원금</th>
+						<th>잔액</th>
+					</tr>
+				</thead>
+				<tbody id="ep-tbody"></tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+<style>
+.ep-card {
+	max-width: 960px;
+	margin: 0 auto;
+	background: #fff;
+	border: 1px solid #e9ecef;
+	border-radius: 12px;
+	padding: 18px;
+	box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+}
+
+.ep-head h2 { font-size: 28px; margin-bottom: 6px; color: #343a40; }
+.ep-head p { color: #6c757d; margin-bottom: 12px; }
+
+.ep-guide {
+	background: #f8f9fb;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 14px;
+	margin-bottom: 14px;
+}
+
+.ep-guide h3 { font-size: 17px; margin-bottom: 8px; color: #343a40; }
+.ep-guide ul { margin-left: 18px; color: #495057; line-height: 1.5; margin-bottom: 8px; }
+.ep-note { color: #6c757d; font-size: 14px; margin: 0; }
+
+.ep-form { display: grid; gap: 12px; margin-bottom: 12px; }
+.ep-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.ep-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.ep-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+
+.ep-actions { display: flex; justify-content: flex-start; }
+.ep-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 12px 16px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.ep-btn:hover { background: #157347; }
+
+.ep-result { margin-top: 12px; }
+.ep-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.ep-stat { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; }
+.ep-label { color: #6c757d; font-size: 14px; }
+.ep-value { display: block; margin-top: 4px; font-size: 18px; color: #343a40; }
+
+.ep-table-wrap { margin-top: 14px; border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden; }
+.ep-table-head { background: #e9ecef; padding: 10px 12px; font-weight: 700; color: #343a40; }
+.ep-table { width: 100%; border-collapse: collapse; background: #f8f9fa; }
+.ep-table th, .ep-table td { padding: 10px; text-align: center; border-bottom: 1px solid #e9ecef; font-size: 14px; color: #343a40; }
+.ep-table th { background: #f1f3f5; font-weight: 700; }
+.ep-table tbody tr:last-child td { border-bottom: none; }
+
+@media (max-width: 640px) {
+	.ep-head h2 { font-size: 24px; }
+	.ep-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const commaInputs = ['loan_amount', 'loan_term'];
+	const decimalInputs = ['interest_rate'];
+
+	const formatComma = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	};
+
+	const toNumber = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits ? parseFloat(digits) : 0;
+	};
+
+	commaInputs.forEach(id => {
+		const el = document.getElementById(id);
+		if (!el) return;
+		el.addEventListener('input', () => { el.value = formatComma(el.value); });
+		el.addEventListener('focus', () => el.select());
+	});
+
+	decimalInputs.forEach(id => {
+		const el = document.getElementById(id);
+		if (!el) return;
+		el.addEventListener('input', () => { el.value = el.value.replace(/[^0-9.]/g, ''); });
+		el.addEventListener('focus', () => el.select());
+	});
+
+	const renderSnapshot = (rows) => {
+		const tbody = document.getElementById('ep-tbody');
+		tbody.innerHTML = '';
+		rows.forEach(r => {
+			const tr = document.createElement('tr');
+			tr.innerHTML = `
+				<td>${r.idx}</td>
+				<td>${r.payment}</td>
+				<td>${r.interest}</td>
+				<td>${r.principal}</td>
+				<td>${r.balance}</td>
+			`;
+			tbody.appendChild(tr);
+		});
+	};
+
+	const calcSchedule = (principal, annualRate, years) => {
+		const months = years * 12;
+		const monthlyRate = annualRate / 12 / 100;
+		if (principal <= 0 || months <= 0 || monthlyRate < 0) return null;
+
+		const monthlyPrincipal = principal / months;
+		let balance = principal;
+		const snapshot = [];
+		let totalPaid = 0;
+		let totalInterest = 0;
+		let firstPayment = null;
+		let lastPayment = null;
+
+		for (let i = 1; i <= months; i++) {
+			const interest = balance * monthlyRate;
+			const payment = monthlyPrincipal + interest;
+			balance = Math.max(0, balance - monthlyPrincipal);
+
+			if (i === 1) firstPayment = payment;
+			if (i === months) lastPayment = payment;
+
+			if (i <= 12) {
+				snapshot.push({
+					idx: i,
+					payment: Math.round(payment).toLocaleString(),
+					interest: Math.round(interest).toLocaleString(),
+					principal: Math.round(monthlyPrincipal).toLocaleString(),
+					balance: Math.round(balance).toLocaleString()
+				});
+			}
+
+			totalPaid += payment;
+			totalInterest += interest;
+		}
+
+		return {
+			months,
+			firstPayment,
+			lastPayment,
+			totalPaid,
+			totalInterest,
+			snapshot
+		};
+	};
+
+	document.getElementById('ep-calc').addEventListener('click', () => {
+		const principal = toNumber(document.getElementById('loan_amount').value);
+		const annualRate = parseFloat(document.getElementById('interest_rate').value || '0');
+		const years = toNumber(document.getElementById('loan_term').value);
+
+		if (principal <= 0 || years <= 0 || annualRate < 0) {
+			alert('대출 금액, 기간, 이자율을 올바르게 입력해주세요.');
+			return;
+		}
+
+		const result = calcSchedule(principal, annualRate, years);
+		if (!result) {
+			alert('계산에 실패했습니다. 입력값을 확인해주세요.');
+			return;
+		}
+
+		document.getElementById('first-payment').textContent = Math.round(result.firstPayment).toLocaleString() + '원';
+		document.getElementById('last-payment').textContent = Math.round(result.lastPayment).toLocaleString() + '원';
+		document.getElementById('total-paid').textContent = Math.round(result.totalPaid).toLocaleString() + '원';
+		document.getElementById('total-interest').textContent = Math.round(result.totalInterest).toLocaleString() + '원';
+		document.getElementById('total-months').textContent = result.months.toLocaleString() + '개월';
+
+		renderSnapshot(result.snapshot);
+		document.getElementById('ep-table-wrap').hidden = result.snapshot.length === 0;
+		document.getElementById('ep-result').hidden = false;
+	});
+});
+</script>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}퇴직금 계산기{% endblock %}
+
+{% block page_title %}퇴직금 계산기{% endblock %}
+
+{% block content %}
+<div class="rp-card">
+	<header class="rp-head">
+		<h2>퇴직금 계산기</h2>
+		<p>평균임금과 근속기간을 입력해 예상 퇴직금을 확인하세요. (단순 계산)</p>
+	</header>
+
+	<div class="rp-form">
+		<div class="rp-grid">
+			<div class="rp-field">
+				<label for="monthly_pay">월 급여 (원)</label>
+				<input type="text" id="monthly_pay" inputmode="numeric" placeholder="예: 3,500,000">
+			</div>
+			<div class="rp-field">
+				<label for="months">근속 개월 수</label>
+				<input type="text" id="months" inputmode="numeric" placeholder="예: 36">
+			</div>
+		</div>
+		<div class="rp-actions">
+			<button type="button" class="rp-btn" id="rp-calc">퇴직금 계산하기</button>
+		</div>
+	</div>
+
+	<div class="rp-result" id="rp-result" hidden>
+		<div class="rp-row">
+			<span class="rp-label">평균임금(일)</span>
+			<span class="rp-value" id="rp-daily">-</span>
+		</div>
+		<div class="rp-row">
+			<span class="rp-label">근속연수(년)</span>
+			<span class="rp-value" id="rp-years">-</span>
+		</div>
+		<div class="rp-row rp-row-total">
+			<span class="rp-label">예상 퇴직금</span>
+			<span class="rp-value" id="rp-total">-</span>
+		</div>
+	</div>
+</div>
+
+<style>
+.rp-card { max-width: 820px; margin: 0 auto; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+.rp-head h2 { font-size: 26px; margin-bottom: 6px; color: #343a40; }
+.rp-head p { color: #6c757d; margin-bottom: 12px; }
+.rp-form { display: grid; gap: 12px; margin-bottom: 12px; }
+.rp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.rp-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.rp-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+.rp-actions { display: flex; justify-content: flex-start; }
+.rp-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 10px 14px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.rp-btn:hover { background: #157347; }
+.rp-result { border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden; background: #f8f9fa; }
+.rp-row { display: grid; grid-template-columns: 1fr auto; padding: 10px 12px; border-bottom: 1px solid #e9ecef; }
+.rp-row:last-child { border-bottom: none; }
+.rp-row-total { background: #eef4ff; }
+.rp-label { color: #495057; font-weight: 600; }
+.rp-value { color: #343a40; font-weight: 600; }
+@media (max-width: 640px) { .rp-head h2 { font-size: 22px; } .rp-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const commaInputs = ['monthly_pay','months'];
+	const fmt = (v)=>v.replace(/[^0-9]/g,'').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	const num = (v)=>{const t=v.replace(/[^0-9]/g,''); return t?parseFloat(t):0;};
+	commaInputs.forEach(id=>{const el=document.getElementById(id); if(!el) return; el.addEventListener('input',()=>{el.value=fmt(el.value);}); el.addEventListener('focus',()=>el.select());});
+
+	document.getElementById('rp-calc').addEventListener('click', ()=>{
+		const monthly = num(document.getElementById('monthly_pay').value);
+		const months = num(document.getElementById('months').value);
+		if(monthly<=0 || months<=0){ alert('월 급여와 근속 개월을 입력하세요.'); return; }
+		const years = months/12;
+		const daily = (monthly*12/365);
+		const retirement = Math.round(daily*30*years);
+		document.getElementById('rp-daily').textContent = Math.round(daily).toLocaleString()+'원';
+		document.getElementById('rp-years').textContent = years.toFixed(2)+'년';
+		document.getElementById('rp-total').textContent = retirement.toLocaleString()+'원';
+		document.getElementById('rp-result').hidden = false;
+	});
+});
+</script>
+{% endblock %}

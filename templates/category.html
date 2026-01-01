@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category_name }}{% endblock %}
+
+{% block page_title %}{{ category_name }}{% endblock %}
+
+{% block content %}
+<div class="cat-card">
+	<header class="cat-head">
+		<h2>{{ category_name }}</h2>
+		<p>원하는 계산기를 선택해 바로 이동하세요.</p>
+	</header>
+
+	<div class="cat-grid">
+		{% if category_name == '금융 · 투자' %}
+			<a class="cat-item" href="/finance/dividend-calculator">
+				<div class="cat-title">배당금 계산기</div>
+				<div class="cat-desc">배당률·투자금으로 배당금/세후수령액 확인</div>
+			</a>
+			<a class="cat-item" href="/finance/compound-interest-calculator">
+				<div class="cat-title">복리 계산기</div>
+				<div class="cat-desc">기본·적립식 복리 수익 시뮬레이션</div>
+			</a>
+			<a class="cat-item" href="/finance/stock-return-calculator">
+				<div class="cat-title">주식 수익률 계산기</div>
+				<div class="cat-desc">수수료·세금 포함 손익/수익률 계산</div>
+			</a>
+			<a class="cat-item" href="/finance/average-price-calculator">
+				<div class="cat-title">평단가 계산기</div>
+				<div class="cat-desc">추가 매수 후 새 평단가 계산</div>
+			</a>
+		{% elif category_name == '대출 · 이자' %}
+			<a class="cat-item" href="/loan/loan-interest-calculator">
+				<div class="cat-title">대출 이자 계산기</div>
+				<div class="cat-desc">대출 원리금/이자 총액 계산</div>
+			</a>
+			<a class="cat-item" href="/loan/equal-principal-interest-calculator">
+				<div class="cat-title">원리금 균등 계산기</div>
+				<div class="cat-desc">매월 동일 상환금 스케줄 확인</div>
+			</a>
+			<a class="cat-item" href="/loan/equal-principal-calculator">
+				<div class="cat-title">원금 균등 계산기</div>
+				<div class="cat-desc">원금 균등 상환 스케줄 확인</div>
+			</a>
+		{% elif category_name == '부동산' %}
+			<a class="cat-item" href="/real-estate/rent-to-monthly-calculator">
+				<div class="cat-title">전세·월세 전환 계산기</div>
+				<div class="cat-desc">보증금↔월세 전환 및 수익률</div>
+			</a>
+			<a class="cat-item" href="/real-estate/acquisition-tax-calculator">
+				<div class="cat-title">취득세 계산기</div>
+				<div class="cat-desc">주택 수·가격별 취득세 간이 계산</div>
+			</a>
+			<a class="cat-item" href="/real-estate/brokerage-fee-calculator">
+				<div class="cat-title">중개수수료 계산기</div>
+				<div class="cat-desc">거래 금액/유형별 상한 요율 계산</div>
+			</a>
+		{% elif category_name == '직장인 · 세금' %}
+			<a class="cat-item" href="/salary/net-salary-calculator">
+				<div class="cat-title">연봉 실수령액 계산기</div>
+				<div class="cat-desc">4대 보험·세금 포함 실수령액</div>
+			</a>
+			<a class="cat-item" href="/salary/retirement-pay-calculator">
+				<div class="cat-title">퇴직금 계산기</div>
+				<div class="cat-desc">평균임금 기반 예상 퇴직금</div>
+			</a>
+			<a class="cat-item" href="/salary/vat-calculator">
+				<div class="cat-title">부가세 계산기</div>
+				<div class="cat-desc">공급가·총액 상호 변환</div>
+			</a>
+		{% elif category_name == '생활' %}
+			<a class="cat-item" href="/life/bmi-calculator">
+				<div class="cat-title">BMI 계산기</div>
+				<div class="cat-desc">BMI 값과 구간 확인</div>
+			</a>
+			<a class="cat-item" href="/life/age-calculator">
+				<div class="cat-title">만 나이 계산기</div>
+				<div class="cat-desc">오늘 기준 만 나이 계산</div>
+			</a>
+			<a class="cat-item" href="/life/d-day-calculator">
+				<div class="cat-title">디데이 계산기</div>
+				<div class="cat-desc">목표일까지 남은/지난 일수</div>
+			</a>
+		{% endif %}
+	</div>
+</div>
+
+<style>
+.cat-card { background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px; box-shadow: 0 18px 40px rgba(0,0,0,0.25); }
+.cat-head h2 { font-size: 26px; color: #fff; margin-bottom: 6px; }
+.cat-head p { color: #9ca3af; margin-bottom: 14px; }
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.cat-item { display: block; padding: 14px; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; text-decoration: none; color: #e5e7eb; background: rgba(255,255,255,0.03); transition: transform 0.15s ease, border-color 0.2s, background 0.2s; }
+.cat-item:hover { transform: translateY(-2px); border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); }
+.cat-title { font-weight: 800; margin-bottom: 4px; }
+.cat-desc { color: #9ca3af; font-size: 14px; }
+@media (max-width: 640px) { .cat-head h2 { font-size: 22px; } }
+</style>
+{% endblock %}

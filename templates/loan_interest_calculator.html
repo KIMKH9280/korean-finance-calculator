@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}대출 이자 계산기{% endblock %}
+
+{% block page_title %}대출 이자 계산기{% endblock %}
+
+{% block content %}
+<div class="calculator-container">
+    <h2>대출 이자 계산기</h2>
+    <p>대출 금액, 이자율, 기간을 입력하여 월 상환액과 총 이자를 계산하세요.</p>
+
+    <form method="post" class="calculator-form">
+        <div class="form-group">
+            <label for="loan_amount">대출 금액 (원)</label>
+            <input type="number" id="loan_amount" name="loan_amount" min="100000" step="10000" required placeholder="예: 10000000">
+        </div>
+
+        <div class="form-group">
+            <label for="interest_rate">연 이자율 (%)</label>
+            <input type="number" id="interest_rate" name="interest_rate" min="0" step="0.1" required placeholder="예: 3.5">
+        </div>
+
+        <div class="form-group">
+            <label for="loan_term">대출 기간 (년)</label>
+            <input type="number" id="loan_term" name="loan_term" min="1" max="50" required placeholder="예: 10">
+        </div>
+
+        <div class="form-group">
+            <label for="repayment_type">상환 방식</label>
+            <select id="repayment_type" name="repayment_type">
+                <option value="equal_principal_interest">원리금 균등</option>
+                <option value="equal_principal">원금 균등</option>
+            </select>
+        </div>
+
+        <button type="submit" class="calculate-btn">계산하기</button>
+    </form>
+
+    {% if result %}
+    <div class="result-section">
+        {% if 'error' in result %}
+        <div class="error-message">
+            <p>{{ result.error }}</p>
+        </div>
+        {% else %}
+        <h3>계산 결과</h3>
+        <div class="result-grid">
+            <div class="result-item">
+                <span class="result-label">월 상환액</span>
+                <span class="result-value">{{ result.monthly_payment }} 원</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">총 상환 금액</span>
+                <span class="result-value">{{ result.total_payment }} 원</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">총 이자 금액</span>
+                <span class="result-value">{{ result.total_interest }} 원</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">이자율</span>
+                <span class="result-value">{{ result.interest_rate }}%</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.calculator-container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 26px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    color: #111827;
+}
+
+.calculator-form {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #111827;
+}
+
+.form-group input, .form-group select {
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 16px;
+    background: #f9fafb;
+    color: #111827;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input::placeholder {
+    color: #9ca3af;
+}
+
+.calculator-container h2 {
+    margin-bottom: 8px;
+    color: #111827;
+    letter-spacing: -0.2px;
+}
+
+.calculator-container p {
+    margin-bottom: 18px;
+    color: #4b5563;
+}
+
+.calculate-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 800;
+    border-radius: 10px;
+    letter-spacing: 0.2px;
+    color: #fff;
+    box-shadow: 0 12px 30px rgba(15,108,68,0.18);
+}
+
+.result-section {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 20px;
+}
+
+.result-section h3 {
+    color: #111827;
+    margin-bottom: 15px;
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.result-label {
+    font-weight: 700;
+    color: #4b5563;
+}
+
+.error-message {
+    background: #fef2f2;
+    color: #b91c1c;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #fecaca;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}

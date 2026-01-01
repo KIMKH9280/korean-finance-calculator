@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}연봉 실수령액 계산기{% endblock %}
+
+{% block page_title %}연봉 실수령액 계산기{% endblock %}
+
+{% block content %}
+<div class="ns-card">
+    <header class="ns-head">
+        <h2>연봉 실수령액 계산기</h2>
+        <p>연봉을 입력하면 4대 보험·소득세를 공제한 연/월 실수령액을 확인합니다.</p>
+    </header>
+
+    <section class="ns-guide">
+        <h3>계산 기준</h3>
+        <ul>
+            <li>국민연금 4.5% (상한 5,530,000원/월, 2025년)</li>
+            <li>건강보험 3.545% · 장기요양보험 12.81%(건강보험의)</li>
+            <li>고용보험 0.9%, 소득세 2025년 누진세율 + 지방소득세 10%</li>
+            <li>연봉과 비과세액은 만원 단위 입력, 결과는 원 단위로 표기합니다.</li>
+        </ul>
+        <p class="ns-note">간이 계산 결과이므로 실제 급여 명세와 차이가 있을 수 있습니다.</p>
+    </section>
+
+    <form method="post" class="ns-form">
+        <div class="ns-grid">
+            <div class="ns-field">
+                <label for="annual_salary">연봉 (만원)</label>
+                <input type="text" id="annual_salary" name="annual_salary" inputmode="numeric" value="{{ request.form.get('annual_salary', '') }}" placeholder="예: 3,000" required>
+            </div>
+            <div class="ns-field">
+                <label for="dependents">부양가족 수 (명)</label>
+                <input type="text" id="dependents" name="dependents" inputmode="numeric" value="{{ request.form.get('dependents', '0') }}" placeholder="예: 1" required>
+            </div>
+            <div class="ns-field">
+                <label for="non_taxable">비과세액 (만원)</label>
+                <input type="text" id="non_taxable" name="non_taxable" inputmode="numeric" value="{{ request.form.get('non_taxable', '20') }}" placeholder="예: 20" required>
+                <small class="ns-help">비과세 식대·교통비 등 월 비과세액 합계 (만원)</small>
+            </div>
+            <div class="ns-field">
+                <label for="meal_allowance">식대 (만원/월)</label>
+                <input type="text" id="meal_allowance" name="meal_allowance" inputmode="numeric" value="{{ request.form.get('meal_allowance', '20') }}" placeholder="예: 20">
+                <small class="ns-help">월 20만원까지 비과세, 초과분은 과세</small>
+            </div>
+            <div class="ns-field">
+                <label for="night_allowance">야간·교통 수당 (만원/월)</label>
+                <input type="text" id="night_allowance" name="night_allowance" inputmode="numeric" value="{{ request.form.get('night_allowance', '0') }}" placeholder="예: 15">
+                <small class="ns-help">과세 수당으로 처리</small>
+            </div>
+            <div class="ns-field">
+                <label for="bonus_annual">보너스 (만원/연)</label>
+                <input type="text" id="bonus_annual" name="bonus_annual" inputmode="numeric" value="{{ request.form.get('bonus_annual', '0') }}" placeholder="예: 300">
+                <small class="ns-help">연간 총 보너스 금액</small>
+            </div>
+            <div class="ns-field">
+                <label for="pension_contrib">퇴직연금 본인부담 (만원/월)</label>
+                <input type="text" id="pension_contrib" name="pension_contrib" inputmode="numeric" value="{{ request.form.get('pension_contrib', '0') }}" placeholder="예: 20">
+                <small class="ns-help">세전 적립분, 과세소득에서 차감</small>
+            </div>
+        </div>
+        <div class="ns-actions">
+            <button type="submit" class="ns-btn">실수령액 계산하기</button>
+        </div>
+    </form>
+
+    {% if result %}
+    <div class="ns-result">
+        {% if 'error' in result %}
+            <div class="ns-alert">{{ result.error }}</div>
+        {% else %}
+            <div class="ns-summary">
+                <div class="ns-card-sm">
+                    <span class="ns-label">연 실수령액</span>
+                    <strong class="ns-value">{{ result.net_salary }} 원</strong>
+                </div>
+                <div class="ns-card-sm">
+                    <span class="ns-label">월 실수령액</span>
+                    <strong class="ns-value">{{ result.monthly_net }} 원</strong>
+                </div>
+            </div>
+
+            <div class="ns-breakdown">
+                <div class="ns-row">
+                    <span class="ns-b-label">총 지급액(비과세 포함, 연)</span>
+                    <span class="ns-b-value">{{ result.gross_cash }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">과세 대상 급여(연)</span>
+                    <span class="ns-b-value">{{ result.taxable_cash }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">연봉</span>
+                    <span class="ns-b-value">{{ result.annual_salary }}</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">보너스</span>
+                    <span class="ns-b-value">{{ result.bonus_annual }}</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">야간·교통 수당(연)</span>
+                    <span class="ns-b-value">{{ result.night_allowance }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">식대 비과세(연)</span>
+                    <span class="ns-b-value">{{ result.meal_tax_free }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">식대 과세분(연)</span>
+                    <span class="ns-b-value">{{ result.meal_taxable }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">기타 비과세(연)</span>
+                    <span class="ns-b-value">{{ result.other_non_tax }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">국민연금</span>
+                    <span class="ns-b-value">{{ result.national_pension }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">건강보험</span>
+                    <span class="ns-b-value">{{ result.health_insurance }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">장기요양보험</span>
+                    <span class="ns-b-value">{{ result.long_term_care }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">고용보험</span>
+                    <span class="ns-b-value">{{ result.employment_insurance }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">소득세</span>
+                    <span class="ns-b-value">{{ result.income_tax }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">지방소득세</span>
+                    <span class="ns-b-value">{{ result.local_income_tax }} 원</span>
+                </div>
+                <div class="ns-row">
+                    <span class="ns-b-label">퇴직연금 본인부담(연)</span>
+                    <span class="ns-b-value">{{ result.pension_contrib }} 원</span>
+                </div>
+                <div class="ns-row ns-row-total">
+                    <span class="ns-b-label">총 공제액</span>
+                    <span class="ns-b-value">{{ result.total_deductions }} 원</span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.ns-card { max-width: 960px; margin: 0 auto; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+.ns-head h2 { font-size: 28px; margin-bottom: 6px; color: #343a40; }
+.ns-head p { color: #6c757d; margin-bottom: 12px; }
+.ns-guide { background: #f8f9fb; border: 1px solid #e9ecef; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+.ns-guide h3 { font-size: 17px; margin-bottom: 8px; color: #343a40; }
+.ns-guide ul { margin-left: 18px; color: #495057; line-height: 1.5; margin-bottom: 8px; }
+.ns-note { color: #6c757d; font-size: 14px; margin: 0; }
+.ns-form { display: grid; gap: 12px; margin-bottom: 12px; }
+.ns-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.ns-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.ns-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+.ns-help { color: #6c757d; font-size: 12px; display: block; margin-top: 4px; }
+.ns-actions { display: flex; justify-content: flex-start; }
+.ns-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 12px 16px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.ns-btn:hover { background: #157347; }
+.ns-result { margin-top: 12px; }
+.ns-alert { background: #f8d7da; color: #842029; border: 1px solid #f5c2c7; border-radius: 8px; padding: 12px; }
+.ns-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.ns-card-sm { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; }
+.ns-label { color: #6c757d; font-size: 14px; }
+.ns-value { display: block; margin-top: 4px; font-size: 20px; color: #343a40; }
+.ns-breakdown { border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden; background: #f8f9fa; }
+.ns-row { display: grid; grid-template-columns: 1fr auto; padding: 10px 12px; border-bottom: 1px solid #e9ecef; }
+.ns-row:last-child { border-bottom: none; }
+.ns-b-label { color: #495057; font-weight: 600; }
+.ns-b-value { color: #343a40; font-weight: 600; }
+.ns-row-total { background: #eef4ff; }
+@media (max-width: 640px) { .ns-head h2 { font-size: 24px; } .ns-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const commaInputs = ['annual_salary', 'dependents', 'non_taxable', 'meal_allowance', 'night_allowance', 'bonus_annual', 'pension_contrib'];
+
+    const formatComma = (value) => {
+        const digits = value.replace(/[^0-9]/g, '');
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
+
+    commaInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => { el.value = formatComma(el.value); });
+        el.addEventListener('focus', () => el.select());
+    });
+});
+</script>
+{% endblock %}

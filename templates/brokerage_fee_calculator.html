@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}중개수수료 계산기{% endblock %}
+
+{% block page_title %}중개수수료 계산기{% endblock %}
+
+{% block content %}
+<div class="bf-card">
+	<header class="bf-head">
+		<h2>부동산 중개수수료 계산기</h2>
+		<p>거래 유형과 금액을 입력해 예상 중개보수(상한 기준)를 간단히 확인하세요.</p>
+	</header>
+
+	<section class="bf-guide">
+		<h3>간이 상한 요율 (참고)</h3>
+		<ul>
+			<li>주택 매매: 6억 이하 0.4%, 6~9억 0.5%, 9~12억 0.6%, 12~15억 0.7%, 15억 초과 0.9%</li>
+			<li>주택 전월세: 5천만 미만 0.4%, 5천~1억 0.5%, 1억~3억 0.6%, 3억~6억 0.5%, 6억 초과 0.4% (상한 예시)</li>
+			<li>직접 요율 입력 시 우선 적용합니다. 실제 요율은 지역·계약 유형에 따라 달라질 수 있습니다.</li>
+		</ul>
+		<p class="bf-note">법령·지자체 고시·협의 결과에 따라 달라질 수 있으니 확정 전 중개사와 확인하세요.</p>
+	</section>
+
+	<div class="bf-form">
+		<div class="bf-grid">
+			<div class="bf-field">
+				<label for="trade_type">거래 유형</label>
+				<select id="trade_type">
+					<option value="sale">주택 매매</option>
+					<option value="rent">주택 전월세</option>
+					<option value="custom">직접 요율 입력</option>
+				</select>
+			</div>
+			<div class="bf-field">
+				<label for="amount">거래 금액 (원)</label>
+				<input type="text" id="amount" inputmode="numeric" placeholder="예: 650,000,000">
+			</div>
+			<div class="bf-field">
+				<label for="custom_rate">직접 요율 (%)</label>
+				<input type="text" id="custom_rate" inputmode="decimal" placeholder="예: 0.6">
+				<small class="bf-help">거래 유형이 "직접 요율"이거나, 입력 시 자동 계산된 요율을 덮어씁니다.</small>
+			</div>
+		</div>
+		<div class="bf-actions">
+			<button type="button" class="bf-btn" id="bf-calc">수수료 계산하기</button>
+		</div>
+	</div>
+
+	<div class="bf-result" id="bf-result" hidden>
+		<div class="bf-result-grid">
+			<div class="bf-stat">
+				<span class="bf-label">적용 요율</span>
+				<strong class="bf-value" id="bf-rate">-</strong>
+				<small class="bf-sub" id="bf-rate-desc">-</small>
+			</div>
+			<div class="bf-stat">
+				<span class="bf-label">예상 중개보수</span>
+				<strong class="bf-value" id="bf-fee">-</strong>
+				<small class="bf-sub">거래금액 × 요율</small>
+			</div>
+			<div class="bf-stat">
+				<span class="bf-label">비고</span>
+				<strong class="bf-value" id="bf-note">단순 계산</strong>
+				<small class="bf-sub">상한 기준 예시, 협의 가능</small>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+.bf-card { max-width: 960px; margin: 0 auto; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+.bf-head h2 { font-size: 28px; margin-bottom: 6px; color: #343a40; }
+.bf-head p { color: #6c757d; margin-bottom: 12px; }
+.bf-guide { background: #f8f9fb; border: 1px solid #e9ecef; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+.bf-guide h3 { font-size: 17px; margin-bottom: 8px; color: #343a40; }
+.bf-guide ul { margin-left: 18px; color: #495057; line-height: 1.5; margin-bottom: 8px; }
+.bf-note { color: #6c757d; font-size: 14px; margin: 0; }
+.bf-form { display: grid; gap: 12px; margin-bottom: 12px; }
+.bf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.bf-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.bf-field select, .bf-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+.bf-help { color: #6c757d; font-size: 12px; display: block; margin-top: 4px; }
+.bf-actions { display: flex; justify-content: flex-start; }
+.bf-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 12px 16px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.bf-btn:hover { background: #157347; }
+.bf-result { margin-top: 12px; }
+.bf-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.bf-stat { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; }
+.bf-label { color: #6c757d; font-size: 14px; }
+.bf-value { display: block; margin-top: 4px; font-size: 18px; color: #343a40; }
+.bf-sub { color: #6c757d; font-size: 12px; }
+@media (max-width: 640px) { .bf-head h2 { font-size: 24px; } .bf-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const amountInput = document.getElementById('amount');
+	const customRateInput = document.getElementById('custom_rate');
+
+	const formatComma = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	};
+
+	const toNumber = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits ? parseFloat(digits) : 0;
+	};
+
+	amountInput.addEventListener('input', () => { amountInput.value = formatComma(amountInput.value); });
+	amountInput.addEventListener('focus', () => amountInput.select());
+
+	customRateInput.addEventListener('input', () => { customRateInput.value = customRateInput.value.replace(/[^0-9.]/g, ''); });
+	customRateInput.addEventListener('focus', () => customRateInput.select());
+
+	const saleRate = (price) => {
+		if (price <= 600000000) return 0.4;
+		if (price <= 900000000) return 0.5;
+		if (price <= 1200000000) return 0.6;
+		if (price <= 1500000000) return 0.7;
+		return 0.9;
+	};
+
+	const rentRate = (price) => {
+		// 월세의 경우 보증금+월세*100을 거래금액으로 보는 등 케이스 다양하지만 간이 표를 사용
+		if (price < 50000000) return 0.4;
+		if (price < 100000000) return 0.5;
+		if (price < 300000000) return 0.6;
+		if (price < 600000000) return 0.5;
+		return 0.4;
+	};
+
+	document.getElementById('bf-calc').addEventListener('click', () => {
+		const tradeType = document.getElementById('trade_type').value;
+		const amount = toNumber(amountInput.value);
+		const customRate = parseFloat(customRateInput.value || '');
+
+		if (amount <= 0) {
+			alert('거래 금액을 입력해주세요.');
+			return;
+		}
+
+		let rate = null;
+		let desc = '';
+
+		if (!isNaN(customRate) && customRate > 0 && (tradeType === 'custom' || tradeType === 'sale' || tradeType === 'rent')) {
+			rate = customRate;
+			desc = '사용자 입력 요율 적용';
+		} else if (tradeType === 'sale') {
+			rate = saleRate(amount);
+			desc = '주택 매매 상한 요율(간이)';
+		} else if (tradeType === 'rent') {
+			rate = rentRate(amount);
+			desc = '주택 전월세 상한 요율(간이)';
+		} else {
+			alert('거래 유형을 선택하거나 요율을 입력해주세요.');
+			return;
+		}
+
+		const fee = Math.round(amount * rate / 100);
+
+		document.getElementById('bf-rate').textContent = rate.toFixed(2) + '%';
+		document.getElementById('bf-rate-desc').textContent = desc;
+		document.getElementById('bf-fee').textContent = fee.toLocaleString() + '원';
+		document.getElementById('bf-note').textContent = '협의·법정 상한 확인 필요';
+		document.getElementById('bf-result').hidden = false;
+	});
+});
+</script>
+{% endblock %}

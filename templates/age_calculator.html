@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}만 나이 계산기{% endblock %}
+
+{% block page_title %}만 나이 계산기{% endblock %}
+
+{% block content %}
+<div class="age-card">
+	<header class="age-head">
+		<h2>만 나이 계산기</h2>
+		<p>생년월일을 기준으로 오늘 기준 만 나이를 계산합니다.</p>
+	</header>
+
+	<div class="age-form">
+		<div class="age-field">
+			<label for="birth">생년월일</label>
+			<input type="date" id="birth">
+		</div>
+		<div class="age-actions">
+			<button type="button" class="age-btn" id="age-calc">계산하기</button>
+		</div>
+	</div>
+
+	<div class="age-result" id="age-result" hidden>
+		<div class="age-row age-row-total">
+			<span class="age-label">만 나이</span>
+			<span class="age-value" id="age-years">-</span>
+		</div>
+		<div class="age-row">
+			<span class="age-label">오늘 날짜</span>
+			<span class="age-value" id="age-today">-</span>
+		</div>
+	</div>
+</div>
+
+<style>
+.age-card { max-width: 520px; margin: 0 auto; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+.age-head h2 { font-size: 24px; margin-bottom: 6px; color: #343a40; }
+.age-head p { color: #6c757d; margin-bottom: 12px; }
+.age-form { display: grid; gap: 10px; margin-bottom: 12px; }
+.age-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.age-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+.age-actions { display: flex; justify-content: flex-start; }
+.age-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 10px 14px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.age-btn:hover { background: #157347; }
+.age-result { border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden; background: #f8f9fa; }
+.age-row { display: grid; grid-template-columns: 1fr auto; padding: 10px 12px; border-bottom: 1px solid #e9ecef; }
+.age-row:last-child { border-bottom: none; }
+.age-row-total { background: #eef4ff; }
+.age-label { color: #495057; font-weight: 600; }
+.age-value { color: #343a40; font-weight: 600; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const fmtDate = (d)=> `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+	document.getElementById('birth').value = fmtDate(new Date());
+
+	document.getElementById('age-calc').addEventListener('click', () => {
+		const val = document.getElementById('birth').value;
+		if(!val){ alert('생년월일을 입력하세요.'); return; }
+		const birth = new Date(val+'T00:00:00');
+		const today = new Date();
+		let age = today.getFullYear() - birth.getFullYear();
+		const m = today.getMonth() - birth.getMonth();
+		const d = today.getDate() - birth.getDate();
+		if(m < 0 || (m === 0 && d < 0)) age -= 1;
+		document.getElementById('age-years').textContent = `${age}세`;
+		document.getElementById('age-today').textContent = fmtDate(today);
+		document.getElementById('age-result').hidden = false;
+	});
+});
+</script>
+{% endblock %}

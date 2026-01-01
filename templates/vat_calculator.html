@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}부가세 계산기{% endblock %}
+
+{% block page_title %}부가세 계산기{% endblock %}
+
+{% block content %}
+<div class="vat-card">
+	<header class="vat-head">
+		<h2>부가세 계산기</h2>
+		<p>공급가액, 부가세, 총액을 상호 변환합니다. (기본 세율 10%)</p>
+	</header>
+
+	<div class="vat-form">
+		<div class="vat-grid">
+			<div class="vat-field">
+				<label for="vat_rate">부가세율 (%)</label>
+				<input type="text" id="vat_rate" inputmode="decimal" value="10">
+			</div>
+			<div class="vat-field">
+				<label for="supply_amount">공급가액 (원)</label>
+				<input type="text" id="supply_amount" inputmode="numeric" placeholder="예: 1,000,000">
+			</div>
+			<div class="vat-field">
+				<label for="vat_amount">부가세 (원)</label>
+				<input type="text" id="vat_amount" inputmode="numeric" placeholder="예: 100,000">
+			</div>
+			<div class="vat-field">
+				<label for="total_amount">총액 (원)</label>
+				<input type="text" id="total_amount" inputmode="numeric" placeholder="예: 1,100,000">
+			</div>
+		</div>
+		<div class="vat-actions">
+			<button type="button" class="vat-btn" id="btn-from-supply">공급가액 기준 계산</button>
+			<button type="button" class="vat-btn" id="btn-from-total">총액 기준 계산</button>
+		</div>
+	</div>
+
+	<div class="vat-result" id="vat-result" hidden>
+		<div class="vat-row">
+			<span class="vat-label">공급가액</span>
+			<span class="vat-value" id="out-supply">-</span>
+		</div>
+		<div class="vat-row">
+			<span class="vat-label">부가세</span>
+			<span class="vat-value" id="out-vat">-</span>
+		</div>
+		<div class="vat-row vat-row-total">
+			<span class="vat-label">총액</span>
+			<span class="vat-value" id="out-total">-</span>
+		</div>
+	</div>
+</div>
+
+<style>
+.vat-card { max-width: 900px; margin: 0 auto; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+.vat-head h2 { font-size: 26px; margin-bottom: 6px; color: #343a40; }
+.vat-head p { color: #6c757d; margin-bottom: 12px; }
+.vat-form { display: grid; gap: 12px; margin-bottom: 12px; }
+.vat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.vat-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.vat-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+.vat-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.vat-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 10px 12px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.vat-btn:hover { background: #157347; }
+.vat-result { border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden; background: #f8f9fa; }
+.vat-row { display: grid; grid-template-columns: 1fr auto; padding: 10px 12px; border-bottom: 1px solid #e9ecef; }
+.vat-row:last-child { border-bottom: none; }
+.vat-row-total { background: #eef4ff; }
+.vat-label { color: #495057; font-weight: 600; }
+.vat-value { color: #343a40; font-weight: 600; }
+@media (max-width: 640px) { .vat-head h2 { font-size: 22px; } .vat-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const commaInputs = ['vat_rate','supply_amount','vat_amount','total_amount'];
+	const formatComma = (v) => v.replace(/[^0-9.]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	const num = (v) => { const t=v.replace(/[^0-9.]/g,''); return t?parseFloat(t):0; };
+	commaInputs.forEach(id => {
+		const el = document.getElementById(id);
+		if(!el) return;
+		el.addEventListener('input', ()=>{ el.value = formatComma(el.value); });
+		el.addEventListener('focus', ()=> el.select());
+	});
+
+	const show = (supply, vat, total) => {
+		document.getElementById('out-supply').textContent = supply.toLocaleString() + '원';
+		document.getElementById('out-vat').textContent = vat.toLocaleString() + '원';
+		document.getElementById('out-total').textContent = total.toLocaleString() + '원';
+		document.getElementById('vat-result').hidden = false;
+	};
+
+	document.getElementById('btn-from-supply').addEventListener('click', () => {
+		const rate = num(document.getElementById('vat_rate').value) / 100;
+		const supply = num(document.getElementById('supply_amount').value);
+		if(rate <= 0 || supply <= 0) { alert('세율과 공급가액을 입력하세요.'); return; }
+		const vat = Math.round(supply * rate);
+		const total = supply + vat;
+		show(supply, vat, total);
+		document.getElementById('vat_amount').value = vat.toLocaleString();
+		document.getElementById('total_amount').value = total.toLocaleString();
+	});
+
+	document.getElementById('btn-from-total').addEventListener('click', () => {
+		const rate = num(document.getElementById('vat_rate').value) / 100;
+		const total = num(document.getElementById('total_amount').value);
+		if(rate <= 0 || total <= 0) { alert('세율과 총액을 입력하세요.'); return; }
+		const supply = Math.round(total / (1 + rate));
+		const vat = total - supply;
+		show(supply, vat, total);
+		document.getElementById('supply_amount').value = supply.toLocaleString();
+		document.getElementById('vat_amount').value = vat.toLocaleString();
+	});
+});
+</script>
+{% endblock %}

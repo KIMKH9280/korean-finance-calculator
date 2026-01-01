@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}평단가 계산기{% endblock %}
+
+{% block page_title %}평단가 계산기{% endblock %}
+
+{% block content %}
+<div class="ap-card">
+	<header class="ap-head">
+		<h2>평단가 계산기</h2>
+		<p>보유 종목에 추가 매수 시 새로운 평단가를 빠르게 확인하세요.</p>
+	</header>
+
+	<section class="ap-guide">
+		<h3>계산 방법</h3>
+		<ul>
+			<li>기존 보유 금액 = 보유 단가 × 보유 수량</li>
+			<li>추가 매수 금액 = 추가 단가 × 추가 수량</li>
+			<li>새 평단가 = (기존 보유 금액 + 추가 매수 금액) ÷ (보유 수량 + 추가 수량)</li>
+		</ul>
+		<p class="ap-note">수수료·세금은 제외한 단순 평단가 계산입니다.</p>
+	</section>
+
+	<div class="ap-form">
+		<div class="ap-grid">
+			<div class="ap-field">
+				<label for="current_price">보유 단가 (원)</label>
+				<input type="text" id="current_price" inputmode="numeric" placeholder="예: 25,000">
+			</div>
+			<div class="ap-field">
+				<label for="current_qty">보유 수량 (주)</label>
+				<input type="text" id="current_qty" inputmode="numeric" placeholder="예: 120">
+			</div>
+			<div class="ap-field">
+				<label for="add_price">추가 매수 단가 (원)</label>
+				<input type="text" id="add_price" inputmode="numeric" placeholder="예: 23,500">
+			</div>
+			<div class="ap-field">
+				<label for="add_qty">추가 매수 수량 (주)</label>
+				<input type="text" id="add_qty" inputmode="numeric" placeholder="예: 80">
+			</div>
+		</div>
+
+		<div class="ap-actions">
+			<button type="button" class="ap-btn" id="calc-btn">평단가 계산하기</button>
+		</div>
+	</div>
+
+	<div class="ap-result" id="result" hidden>
+		<div class="ap-result-grid">
+			<div class="ap-stat">
+				<span class="ap-label">새 평단가</span>
+				<strong class="ap-value" id="avg-price">-</strong>
+			</div>
+			<div class="ap-stat">
+				<span class="ap-label">총 수량</span>
+				<strong class="ap-value" id="total-qty">-</strong>
+			</div>
+			<div class="ap-stat">
+				<span class="ap-label">총 매수 금액</span>
+				<strong class="ap-value" id="total-cost">-</strong>
+			</div>
+			<div class="ap-stat">
+				<span class="ap-label">기존 평가 금액</span>
+				<strong class="ap-value" id="current-cost">-</strong>
+			</div>
+			<div class="ap-stat">
+				<span class="ap-label">추가 매수 금액</span>
+				<strong class="ap-value" id="add-cost">-</strong>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+.ap-card {
+	max-width: 960px;
+	margin: 0 auto;
+	background: #fff;
+	border: 1px solid #e9ecef;
+	border-radius: 12px;
+	padding: 18px;
+	box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+}
+
+.ap-head h2 {
+	font-size: 28px;
+	margin-bottom: 6px;
+	color: #343a40;
+}
+
+.ap-head p {
+	color: #6c757d;
+	margin-bottom: 12px;
+}
+
+.ap-guide {
+	background: #f8f9fb;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 14px;
+	margin-bottom: 14px;
+}
+
+.ap-guide h3 {
+	font-size: 17px;
+	margin-bottom: 8px;
+	color: #343a40;
+}
+
+.ap-guide ul {
+	margin-left: 18px;
+	color: #495057;
+	line-height: 1.5;
+	margin-bottom: 8px;
+}
+
+.ap-note {
+	color: #6c757d;
+	font-size: 14px;
+	margin: 0;
+}
+
+.ap-form {
+	display: grid;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.ap-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 10px;
+}
+
+.ap-field label {
+	font-weight: 700;
+	color: #495057;
+	margin-bottom: 6px;
+	display: block;
+}
+
+.ap-field input {
+	width: 100%;
+	padding: 12px;
+	border: 1px solid #ced4da;
+	border-radius: 6px;
+	font-size: 15px;
+}
+
+.ap-actions {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.ap-btn {
+	background: #198754;
+	color: #fff;
+	border: 1px solid #198754;
+	border-radius: 6px;
+	padding: 12px 16px;
+	font-weight: 700;
+	cursor: pointer;
+	transition: background 0.15s ease;
+}
+
+.ap-btn:hover {
+	background: #157347;
+}
+
+.ap-result {
+	margin-top: 12px;
+}
+
+.ap-result-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 10px;
+}
+
+.ap-stat {
+	background: #f8f9fa;
+	border: 1px solid #e9ecef;
+	border-radius: 8px;
+	padding: 12px;
+}
+
+.ap-label {
+	color: #6c757d;
+	font-size: 14px;
+}
+
+.ap-value {
+	display: block;
+	margin-top: 4px;
+	font-size: 18px;
+	color: #343a40;
+}
+
+@media (max-width: 640px) {
+	.ap-head h2 { font-size: 24px; }
+	.ap-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const commaInputs = ['current_price', 'current_qty', 'add_price', 'add_qty'];
+
+	const formatComma = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	};
+
+	const toNumber = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits ? parseFloat(digits) : 0;
+	};
+
+	commaInputs.forEach(id => {
+		const el = document.getElementById(id);
+		if (!el) return;
+		el.addEventListener('input', () => {
+			el.value = formatComma(el.value);
+		});
+		el.addEventListener('focus', () => el.select());
+	});
+
+	const renderResult = (avgPrice, totalQty, totalCost, currentCost, addCost) => {
+		document.getElementById('avg-price').textContent = avgPrice.toLocaleString() + '원';
+		document.getElementById('total-qty').textContent = totalQty.toLocaleString() + '주';
+		document.getElementById('total-cost').textContent = totalCost.toLocaleString() + '원';
+		document.getElementById('current-cost').textContent = currentCost.toLocaleString() + '원';
+		document.getElementById('add-cost').textContent = addCost.toLocaleString() + '원';
+		document.getElementById('result').hidden = false;
+	};
+
+	document.getElementById('calc-btn').addEventListener('click', () => {
+		const currentPrice = toNumber(document.getElementById('current_price').value);
+		const currentQty = toNumber(document.getElementById('current_qty').value);
+		const addPrice = toNumber(document.getElementById('add_price').value);
+		const addQty = toNumber(document.getElementById('add_qty').value);
+
+		if (currentPrice <= 0 || currentQty < 0 || addPrice <= 0 || addQty < 0) {
+			alert('단가와 수량을 모두 입력해주세요.');
+			return;
+		}
+
+		const currentCost = currentPrice * currentQty;
+		const addCost = addPrice * addQty;
+		const totalQty = currentQty + addQty;
+		if (totalQty === 0) {
+			alert('총 수량이 0입니다. 수량을 확인해주세요.');
+			return;
+		}
+		const totalCost = currentCost + addCost;
+		const avgPrice = Math.round(totalCost / totalQty);
+
+		renderResult(avgPrice, totalQty, totalCost, currentCost, addCost);
+	});
+});
+</script>
+{% endblock %}

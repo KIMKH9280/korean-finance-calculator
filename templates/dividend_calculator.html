@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+
+{% block title %}배당금 계산기{% endblock %}
+
+{% block page_title %}배당금 계산기{% endblock %}
+
+{% block content %}
+<div class="div-card">
+    <header class="div-header">
+        <h2>배당 계산기</h2>
+        <p>투자금, 배당수익률, 배당주기만 입력하면 월별 예상 배당금을 확인할 수 있습니다.</p>
+    </header>
+
+    <div class="div-panel">
+        <div class="div-panel-title">입력폼</div>
+        <form method="post" class="div-form" id="dividend-form">
+            <div class="div-field">
+                <label for="investment_amount">투자금</label>
+                <div class="div-input-wrap">
+                    <input type="text" id="investment_amount" name="investment_amount" inputmode="numeric" pattern="[0-9,]*" value="{{ request.form.get('investment_amount', '0') }}" required>
+                    <span class="div-unit">원</span>
+                </div>
+                <div class="div-chip-row">
+                    <button type="button" class="div-chip" data-amount="100000">십만원</button>
+                    <button type="button" class="div-chip" data-amount="1000000">백만원</button>
+                    <button type="button" class="div-chip" data-amount="10000000">천만원</button>
+                    <button type="button" class="div-chip" data-amount="100000000">일억원</button>
+                </div>
+            </div>
+
+            <div class="div-field">
+                <label for="dividend_yield">배당수익률</label>
+                <div class="div-input-wrap">
+                    <input type="text" id="dividend_yield" name="dividend_yield" inputmode="decimal" pattern="[0-9.,]*" value="{{ request.form.get('dividend_yield', '0') }}" required>
+                    <span class="div-unit">%</span>
+                </div>
+                <div class="div-chip-row">
+                    <button type="button" class="div-chip" data-yield="1">1%</button>
+                    <button type="button" class="div-chip" data-yield="2">2%</button>
+                    <button type="button" class="div-chip" data-yield="3">3%</button>
+                    <button type="button" class="div-chip" data-yield="5">5%</button>
+                    <button type="button" class="div-chip" data-yield="10">10%</button>
+                </div>
+            </div>
+
+            <div class="div-field">
+                <label for="payout_freq">배당주기</label>
+                <div class="div-select-wrap">
+                    <select id="payout_freq" name="payout_freq">
+                        <option value="monthly">월배당</option>
+                        <option value="quarterly">분기배당</option>
+                        <option value="semiannual">반기배당</option>
+                        <option value="annual">연배당</option>
+                    </select>
+                    <span class="div-select-caret">▾</span>
+                </div>
+            </div>
+
+            <div class="div-actions">
+                <button type="submit" class="div-btn primary">계산하기</button>
+            </div>
+        </form>
+    </div>
+
+    {% if result %}
+    <div class="div-result">
+        {% if 'error' in result %}
+            <div class="div-alert">{{ result.error }}</div>
+        {% else %}
+            <div class="div-summary-grid">
+                <div class="div-summary-card">
+                    <div class="div-summary-label">실수령 배당금 (연간)</div>
+                    <div class="div-summary-value">{{ result.net_dividend }} 원</div>
+                </div>
+                <div class="div-summary-card">
+                    <div class="div-summary-label">실수령 배당금 (월)</div>
+                    <div class="div-summary-value">{{ result.monthly_dividend }} 원</div>
+                </div>
+            </div>
+            <div class="div-detail-grid">
+                <div class="div-detail">
+                    <span class="div-detail-label">투자금</span>
+                    <span class="div-detail-value">{{ result.investment_amount }}</span>
+                </div>
+                <div class="div-detail">
+                    <span class="div-detail-label">배당률</span>
+                    <span class="div-detail-value">{{ result.dividend_yield }}</span>
+                </div>
+                <div class="div-detail">
+                    <span class="div-detail-label">연간 배당금</span>
+                    <span class="div-detail-value">{{ result.annual_dividend }} 원</span>
+                </div>
+                <div class="div-detail">
+                    <span class="div-detail-label">배당소득세 (15.4%)</span>
+                    <span class="div-detail-value">{{ result.tax_amount }} 원</span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.div-card {
+    max-width: 980px;
+    margin: 0 auto;
+    background: #f8f9fb;
+    border: 1px solid #e9ecf3;
+    border-radius: 14px;
+    padding: 18px 18px 22px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.div-header h2 {
+    font-size: 30px;
+    margin-bottom: 6px;
+    color: #343a40;
+}
+
+.div-header p {
+    color: #6c757d;
+    font-size: 15px;
+    margin-bottom: 12px;
+}
+
+.div-panel {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.div-panel-title {
+    font-weight: 700;
+    color: #4b5563;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e9ecef;
+    margin-bottom: 12px;
+}
+
+.div-form {
+    display: grid;
+    gap: 16px;
+}
+
+.div-field label {
+    display: block;
+    font-weight: 700;
+    color: #343a40;
+    margin-bottom: 6px;
+}
+
+.div-input-wrap {
+    position: relative;
+}
+
+.div-input-wrap input {
+    width: 100%;
+    padding: 12px 46px 12px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #343a40;
+    background: #fff;
+}
+
+.div-unit {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.div-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.div-chip {
+    border: 1px solid #ced4da;
+    background: #e9ecf3;
+    color: #343a40;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.div-chip:hover {
+    background: #dfe4ef;
+    border-color: #bfc7d8;
+}
+
+.div-select-wrap {
+    position: relative;
+}
+
+.div-select-wrap select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #343a40;
+    appearance: none;
+    background: #fff;
+}
+
+.div-select-caret {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.div-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.div-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.div-btn.primary {
+    background: #198754;
+    border-color: #198754;
+    color: #fff;
+}
+
+.div-btn.primary:hover {
+    background: #157347;
+    border-color: #157347;
+}
+
+.div-btn.ghost {
+    background: #fff;
+    border-color: #ced4da;
+    color: #495057;
+}
+
+.div-btn.ghost:hover {
+    border-color: #adb5bd;
+}
+
+.div-result {
+    margin-top: 16px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.div-alert {
+    padding: 12px 14px;
+    border: 1px solid #f5c2c7;
+    background: #f8d7da;
+    color: #842029;
+    border-radius: 8px;
+}
+
+.div-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.div-summary-card {
+    background: #f8f9fb;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+}
+
+.div-summary-label {
+    color: #6c757d;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.div-summary-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #198754;
+}
+
+.div-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.div-detail {
+    background: #f8f9fb;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.div-detail-label {
+    color: #6c757d;
+    font-weight: 700;
+}
+
+.div-detail-value {
+    color: #198754;
+    font-weight: 800;
+}
+
+@media (max-width: 640px) {
+    .div-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+(function () {
+    const amountInput = document.getElementById('investment_amount');
+    const yieldInput = document.getElementById('dividend_yield');
+    const chips = document.querySelectorAll('.div-chip');
+
+    const cleanInt = (val) => {
+        const cleaned = (val || '').replace(/[^0-9]/g, '');
+        return cleaned;
+    };
+
+    const cleanDecimal = (val) => {
+        const cleaned = (val || '').replace(/[^0-9.]/g, '');
+        if (cleaned === '') return '';
+        const parts = cleaned.split('.');
+        return parts.length > 1 ? `${parts[0]}.${parts.slice(1).join('')}` : parts[0];
+    };
+
+    const formatComma = (val) => {
+        if (val === '' || val === null || val === undefined) return '';
+        const num = Number(val);
+        return Number.isNaN(num) ? '' : num.toLocaleString();
+    };
+
+    const formatAmount = () => {
+        if (!amountInput) return;
+        const raw = cleanInt(amountInput.value);
+        amountInput.value = raw === '' ? '0' : formatComma(raw);
+    };
+
+    const formatYield = () => {
+        if (!yieldInput) return;
+        const raw = cleanDecimal(yieldInput.value);
+        if (raw === '') {
+            yieldInput.value = '0';
+            return;
+        }
+        const [intPart, decPart] = raw.split('.');
+        const intFormatted = formatComma(intPart || '0');
+        yieldInput.value = decPart !== undefined ? `${intFormatted}.${decPart}` : intFormatted;
+    };
+
+    if (amountInput) {
+        amountInput.addEventListener('focus', () => {
+            if (amountInput.value === '0') amountInput.value = '';
+        });
+        amountInput.addEventListener('blur', formatAmount);
+        amountInput.addEventListener('input', () => {
+            const raw = cleanInt(amountInput.value);
+            amountInput.value = formatComma(raw);
+            amountInput.setSelectionRange(amountInput.value.length, amountInput.value.length);
+        });
+        formatAmount();
+    }
+
+    if (yieldInput) {
+        yieldInput.addEventListener('focus', () => {
+            if (yieldInput.value === '0') yieldInput.value = '';
+        });
+        yieldInput.addEventListener('blur', formatYield);
+        yieldInput.addEventListener('input', () => {
+            const raw = cleanDecimal(yieldInput.value);
+            const [intPart, decPart] = raw.split('.');
+            const intFormatted = formatComma(intPart || '');
+            const composed = decPart !== undefined ? `${intFormatted}.${decPart}` : intFormatted;
+            yieldInput.value = composed;
+            yieldInput.setSelectionRange(yieldInput.value.length, yieldInput.value.length);
+        });
+        formatYield();
+    }
+
+    chips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+            if (chip.dataset.amount && amountInput) {
+                amountInput.value = Number(chip.dataset.amount).toLocaleString();
+            }
+            if (chip.dataset.yield && yieldInput) {
+                const y = chip.dataset.yield;
+                yieldInput.value = formatComma(cleanDecimal(y)) || '0';
+            }
+        });
+    });
+
+    // Ensure commas are stripped before submit
+    const form = document.getElementById('dividend-form');
+    if (form) {
+        form.addEventListener('submit', () => {
+            if (amountInput) {
+                amountInput.value = cleanInt(amountInput.value) || '0';
+            }
+            if (yieldInput) {
+                yieldInput.value = cleanDecimal(yieldInput.value) || '0';
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

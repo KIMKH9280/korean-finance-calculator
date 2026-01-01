@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: dividend-calculator
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --workers 3"
+    autoDeploy: true
+    envVars: []

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}취득세 계산기{% endblock %}
+
+{% block page_title %}취득세 계산기{% endblock %}
+
+{% block content %}
+<div class="at-card">
+	<header class="at-head">
+		<h2>취득세 계산기</h2>
+		<p>주택 수·지역·가격을 입력해 예상 취득세를 간단히 확인하세요. (간이 계산용)</p>
+	</header>
+
+	<section class="at-guide">
+		<h3>간이 계산 기준</h3>
+		<ul>
+			<li>주택 1채, 비조정: 6억 이하 1.1%, 6~9억 2.2%, 9억 초과 3.3% (간이 단계 적용)</li>
+			<li>2주택: 8% (조정지역/비조정 동일 간이 적용), 3주택 이상: 12%</li>
+			<li>비주택·토지 등 일반: 4.6% 기본 적용</li>
+			<li>직접 세율 입력 시 그 값을 우선 적용합니다.</li>
+		</ul>
+		<p class="at-note">법령·지역·면적·무상증여 등 조건에 따라 세율이 달라질 수 있으니 실제 신고 전 지자체·세무사 확인이 필요합니다.</p>
+	</section>
+
+	<div class="at-form">
+		<div class="at-grid">
+			<div class="at-field">
+				<label for="house_count">주택 수</label>
+				<select id="house_count">
+					<option value="1">1주택</option>
+					<option value="2">2주택</option>
+					<option value="3">3주택 이상</option>
+					<option value="non">비주택/토지/분양권 등</option>
+				</select>
+			</div>
+			<div class="at-field">
+				<label for="zone">지역</label>
+				<select id="zone">
+					<option value="normal">비조정대상지역</option>
+					<option value="regulated">조정대상지역</option>
+				</select>
+			</div>
+			<div class="at-field">
+				<label for="price">취득가액 (원)</label>
+				<input type="text" id="price" inputmode="numeric" placeholder="예: 850,000,000">
+			</div>
+			<div class="at-field">
+				<label for="custom_rate">직접 세율 입력 (%)</label>
+				<input type="text" id="custom_rate" inputmode="decimal" placeholder="선택 입력">
+				<small class="at-help">입력 시 자동 계산된 세율을 덮어씁니다.</small>
+			</div>
+		</div>
+		<div class="at-actions">
+			<button type="button" class="at-btn" id="at-calc">취득세 계산하기</button>
+		</div>
+	</div>
+
+	<div class="at-result" id="at-result" hidden>
+		<div class="at-result-grid">
+			<div class="at-stat">
+				<span class="at-label">적용 세율</span>
+				<strong class="at-value" id="at-rate">-</strong>
+				<small class="at-sub" id="at-rate-desc">-</small>
+			</div>
+			<div class="at-stat">
+				<span class="at-label">예상 취득세</span>
+				<strong class="at-value" id="at-tax">-</strong>
+				<small class="at-sub">취득가 × 세율</small>
+			</div>
+			<div class="at-stat">
+				<span class="at-label">비고</span>
+				<strong class="at-value" id="at-note">단순 계산</strong>
+				<small class="at-sub">지방교육세·농특세 등 포함 가정(간이)</small>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+.at-card { max-width: 960px; margin: 0 auto; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+.at-head h2 { font-size: 28px; margin-bottom: 6px; color: #343a40; }
+.at-head p { color: #6c757d; margin-bottom: 12px; }
+.at-guide { background: #f8f9fb; border: 1px solid #e9ecef; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+.at-guide h3 { font-size: 17px; margin-bottom: 8px; color: #343a40; }
+.at-guide ul { margin-left: 18px; color: #495057; line-height: 1.5; margin-bottom: 8px; }
+.at-note { color: #6c757d; font-size: 14px; margin: 0; }
+.at-form { display: grid; gap: 12px; margin-bottom: 12px; }
+.at-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.at-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.at-field select, .at-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+.at-help { color: #6c757d; font-size: 12px; display: block; margin-top: 4px; }
+.at-actions { display: flex; justify-content: flex-start; }
+.at-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 12px 16px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.at-btn:hover { background: #157347; }
+.at-result { margin-top: 12px; }
+.at-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.at-stat { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; }
+.at-label { color: #6c757d; font-size: 14px; }
+.at-value { display: block; margin-top: 4px; font-size: 18px; color: #343a40; }
+.at-sub { color: #6c757d; font-size: 12px; }
+@media (max-width: 640px) { .at-head h2 { font-size: 24px; } .at-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const priceInput = document.getElementById('price');
+	const customRateInput = document.getElementById('custom_rate');
+	const commaInputs = [priceInput];
+
+	const formatComma = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	};
+
+	const toNumber = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits ? parseFloat(digits) : 0;
+	};
+
+	commaInputs.forEach(el => {
+		if (!el) return;
+		el.addEventListener('input', () => { el.value = formatComma(el.value); });
+		el.addEventListener('focus', () => el.select());
+	});
+
+	if (customRateInput) {
+		customRateInput.addEventListener('input', () => { customRateInput.value = customRateInput.value.replace(/[^0-9.]/g, ''); });
+		customRateInput.addEventListener('focus', () => customRateInput.select());
+	}
+
+	const autoRate = (houseCount, zone, price) => {
+		if (houseCount === 'non') return 4.6;
+		if (houseCount === '2') return 8.0;
+		if (houseCount === '3') return 12.0;
+
+		// 1주택 간이 구간
+		if (price <= 600000000) return 1.1;
+		if (price <= 900000000) return 2.2;
+		return 3.3;
+	};
+
+	document.getElementById('at-calc').addEventListener('click', () => {
+		const houseCount = document.getElementById('house_count').value;
+		const zone = document.getElementById('zone').value;
+		const price = toNumber(priceInput.value);
+		const customRate = parseFloat(customRateInput.value || '');
+
+		if (price <= 0) {
+			alert('취득가액을 입력해주세요.');
+			return;
+		}
+
+		let rate = autoRate(houseCount, zone, price);
+		let desc = '간이 세율 적용';
+
+		if (!isNaN(customRate) && customRate > 0) {
+			rate = customRate;
+			desc = '사용자 입력 세율 적용';
+		} else if (houseCount !== '1') {
+			desc = `${houseCount === '2' ? '2주택' : houseCount === '3' ? '3주택 이상' : '비주택'} 간이 세율`;
+		} else {
+			desc = price <= 600000000 ? '6억 이하 구간' : price <= 900000000 ? '6~9억 구간' : '9억 초과 구간';
+		}
+
+		const tax = Math.round(price * rate / 100);
+
+		document.getElementById('at-rate').textContent = rate.toFixed(2) + '%';
+		document.getElementById('at-rate-desc').textContent = desc;
+		document.getElementById('at-tax').textContent = tax.toLocaleString() + '원';
+		document.getElementById('at-note').textContent = '확정 신고 전 확인 필요';
+		document.getElementById('at-result').hidden = false;
+	});
+});
+</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}BMI 계산기{% endblock %}
+
+{% block page_title %}BMI 계산기{% endblock %}
+
+{% block content %}
+<div class="bmi-card">
+	<header class="bmi-head">
+		<h2>BMI 계산기</h2>
+		<p>키와 체중으로 BMI와 체중 구간을 확인하세요.</p>
+	</header>
+
+	<div class="bmi-form">
+		<div class="bmi-grid">
+			<div class="bmi-field">
+				<label for="height">키 (cm)</label>
+				<input type="text" id="height" inputmode="decimal" placeholder="예: 170">
+			</div>
+			<div class="bmi-field">
+				<label for="weight">체중 (kg)</label>
+				<input type="text" id="weight" inputmode="decimal" placeholder="예: 65">
+			</div>
+		</div>
+		<div class="bmi-actions">
+			<button type="button" class="bmi-btn" id="bmi-calc">BMI 계산하기</button>
+		</div>
+	</div>
+
+	<div class="bmi-result" id="bmi-result" hidden>
+		<div class="bmi-row">
+			<span class="bmi-label">BMI</span>
+			<span class="bmi-value" id="bmi-value">-</span>
+		</div>
+		<div class="bmi-row bmi-row-total">
+			<span class="bmi-label">구간</span>
+			<span class="bmi-value" id="bmi-range">-</span>
+		</div>
+	</div>
+</div>
+
+<style>
+.bmi-card { max-width: 520px; margin: 0 auto; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+.bmi-head h2 { font-size: 24px; margin-bottom: 6px; color: #343a40; }
+.bmi-head p { color: #6c757d; margin-bottom: 12px; }
+.bmi-form { display: grid; gap: 10px; margin-bottom: 12px; }
+.bmi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.bmi-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.bmi-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+.bmi-actions { display: flex; justify-content: flex-start; }
+.bmi-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 10px 14px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.bmi-btn:hover { background: #157347; }
+.bmi-result { border: 1px solid #e9ecef; border-radius: 8px; overflow: hidden; background: #f8f9fa; }
+.bmi-row { display: grid; grid-template-columns: 1fr auto; padding: 10px 12px; border-bottom: 1px solid #e9ecef; }
+.bmi-row:last-child { border-bottom: none; }
+.bmi-row-total { background: #eef4ff; }
+.bmi-label { color: #495057; font-weight: 600; }
+.bmi-value { color: #343a40; font-weight: 600; }
+@media (max-width: 640px) { .bmi-head h2 { font-size: 22px; } .bmi-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	document.getElementById('bmi-calc').addEventListener('click', () => {
+		const h = parseFloat(document.getElementById('height').value.replace(/[^0-9.]/g,''));
+		const w = parseFloat(document.getElementById('weight').value.replace(/[^0-9.]/g,''));
+		if(!h || !w) { alert('키와 체중을 입력하세요.'); return; }
+		const bmi = w / Math.pow(h/100, 2);
+		let range = '정상';
+		if (bmi < 18.5) range = '저체중';
+		else if (bmi < 23) range = '정상';
+		else if (bmi < 25) range = '과체중';
+		else range = '비만';
+		document.getElementById('bmi-value').textContent = bmi.toFixed(2);
+		document.getElementById('bmi-range').textContent = range;
+		document.getElementById('bmi-result').hidden = false;
+	});
+});
+</script>
+{% endblock %}

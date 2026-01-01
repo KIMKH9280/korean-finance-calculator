@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}전세·월세 전환 계산기{% endblock %}
+
+{% block page_title %}전세·월세 전환 계산기{% endblock %}
+
+{% block content %}
+<div class="rm-card">
+	<header class="rm-head">
+		<h2>전세 · 월세 전환 계산기</h2>
+		<p>전세 보증금을 월세로, 월세를 전세로 간편히 전환해 보세요.</p>
+	</header>
+
+	<section class="rm-guide">
+		<h3>계산 방법</h3>
+		<ul>
+			<li>월세 전환금 = 전세 보증금 × (전환율 ÷ 12)</li>
+			<li>보증금 전환 = 월세 × 12 ÷ 전환율</li>
+			<li>실효 연 수익률 = (월세 × 12 ÷ 보증금) × 100</li>
+		</ul>
+		<p class="rm-note">전환율(연 %)은 지역·계약 조건에 따라 달라집니다. 법정 상한을 확인하세요.</p>
+	</section>
+
+	<div class="rm-form">
+		<div class="rm-grid">
+			<div class="rm-field">
+				<label for="deposit">전세 보증금 (원)</label>
+				<input type="text" id="deposit" inputmode="numeric" placeholder="예: 100,000,000">
+			</div>
+			<div class="rm-field">
+				<label for="monthly">월세 (원)</label>
+				<input type="text" id="monthly" inputmode="numeric" placeholder="예: 600,000">
+			</div>
+			<div class="rm-field">
+				<label for="rate">전환율 (연 %)</label>
+				<input type="text" id="rate" inputmode="decimal" placeholder="예: 6">
+			</div>
+		</div>
+		<div class="rm-actions">
+			<button type="button" class="rm-btn" id="rm-calc">전환 계산하기</button>
+		</div>
+	</div>
+
+	<div class="rm-result" id="rm-result" hidden>
+		<div class="rm-result-grid">
+			<div class="rm-stat">
+				<span class="rm-label">전세 → 월세 전환</span>
+				<strong class="rm-value" id="to-monthly">-</strong>
+				<small class="rm-sub" id="to-monthly-desc">보증금을 입력하면 월세를 계산합니다.</small>
+			</div>
+			<div class="rm-stat">
+				<span class="rm-label">월세 → 보증금 전환</span>
+				<strong class="rm-value" id="to-deposit">-</strong>
+				<small class="rm-sub" id="to-deposit-desc">월세를 입력하면 보증금을 계산합니다.</small>
+			</div>
+			<div class="rm-stat">
+				<span class="rm-label">실효 연 수익률</span>
+				<strong class="rm-value" id="effective-rate">-</strong>
+				<small class="rm-sub">보증금과 월세를 모두 입력했을 때 표시됩니다.</small>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+.rm-card { max-width: 960px; margin: 0 auto; background: #fff; border: 1px solid #e9ecef; border-radius: 12px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); }
+.rm-head h2 { font-size: 28px; margin-bottom: 6px; color: #343a40; }
+.rm-head p { color: #6c757d; margin-bottom: 12px; }
+.rm-guide { background: #f8f9fb; border: 1px solid #e9ecef; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+.rm-guide h3 { font-size: 17px; margin-bottom: 8px; color: #343a40; }
+.rm-guide ul { margin-left: 18px; color: #495057; line-height: 1.5; margin-bottom: 8px; }
+.rm-note { color: #6c757d; font-size: 14px; margin: 0; }
+.rm-form { display: grid; gap: 12px; margin-bottom: 12px; }
+.rm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.rm-field label { font-weight: 700; color: #495057; margin-bottom: 6px; display: block; }
+.rm-field input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; }
+.rm-actions { display: flex; justify-content: flex-start; }
+.rm-btn { background: #198754; color: #fff; border: 1px solid #198754; border-radius: 6px; padding: 12px 16px; font-weight: 700; cursor: pointer; transition: background 0.15s ease; }
+.rm-btn:hover { background: #157347; }
+.rm-result { margin-top: 12px; }
+.rm-result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.rm-stat { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; }
+.rm-label { color: #6c757d; font-size: 14px; }
+.rm-value { display: block; margin-top: 4px; font-size: 18px; color: #343a40; }
+.rm-sub { color: #6c757d; font-size: 12px; }
+@media (max-width: 640px) { .rm-head h2 { font-size: 24px; } .rm-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const commaInputs = ['deposit', 'monthly'];
+	const rateInput = document.getElementById('rate');
+
+	const formatComma = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	};
+
+	const toNumber = (value) => {
+		const digits = value.replace(/[^0-9]/g, '');
+		return digits ? parseFloat(digits) : 0;
+	};
+
+	commaInputs.forEach(id => {
+		const el = document.getElementById(id);
+		if (!el) return;
+		el.addEventListener('input', () => { el.value = formatComma(el.value); });
+		el.addEventListener('focus', () => el.select());
+	});
+
+	if (rateInput) {
+		rateInput.addEventListener('input', () => { rateInput.value = rateInput.value.replace(/[^0-9.]/g, ''); });
+		rateInput.addEventListener('focus', () => rateInput.select());
+	}
+
+	const render = ({ monthlyFromDeposit, depositFromMonthly, effectiveRate }) => {
+		const toMonthlyEl = document.getElementById('to-monthly');
+		const toDepositEl = document.getElementById('to-deposit');
+		const effRateEl = document.getElementById('effective-rate');
+		const toMonthlyDesc = document.getElementById('to-monthly-desc');
+		const toDepositDesc = document.getElementById('to-deposit-desc');
+
+		if (monthlyFromDeposit !== null) {
+			toMonthlyEl.textContent = monthlyFromDeposit.toLocaleString() + '원';
+			toMonthlyDesc.textContent = '전세 보증금 기준 월세 전환 금액';
+		} else {
+			toMonthlyEl.textContent = '-';
+			toMonthlyDesc.textContent = '보증금을 입력하면 월세를 계산합니다.';
+		}
+
+		if (depositFromMonthly !== null) {
+			toDepositEl.textContent = depositFromMonthly.toLocaleString() + '원';
+			toDepositDesc.textContent = '월세 기준 전세 보증금 환산 금액';
+		} else {
+			toDepositEl.textContent = '-';
+			toDepositDesc.textContent = '월세를 입력하면 보증금을 계산합니다.';
+		}
+
+		if (effectiveRate !== null) {
+			effRateEl.textContent = effectiveRate.toFixed(2) + '%';
+		} else {
+			effRateEl.textContent = '-';
+		}
+
+		document.getElementById('rm-result').hidden = false;
+	};
+
+	document.getElementById('rm-calc').addEventListener('click', () => {
+		const deposit = toNumber(document.getElementById('deposit').value);
+		const monthly = toNumber(document.getElementById('monthly').value);
+		const rate = parseFloat(rateInput.value || '0');
+
+		if (rate <= 0) {
+			alert('전환율(연 %)을 입력해주세요.');
+			return;
+		}
+
+		let monthlyFromDeposit = null;
+		let depositFromMonthly = null;
+		let effectiveRate = null;
+
+		if (deposit > 0) {
+			monthlyFromDeposit = Math.round(deposit * (rate / 100) / 12);
+		}
+
+		if (monthly > 0) {
+			depositFromMonthly = Math.round(monthly * 12 / (rate / 100));
+		}
+
+		if (deposit > 0 && monthly > 0) {
+			effectiveRate = (monthly * 12 / deposit) * 100;
+		}
+
+		if (monthlyFromDeposit === null && depositFromMonthly === null) {
+			alert('전세 보증금 또는 월세 중 하나 이상을 입력해주세요.');
+			return;
+		}
+
+		render({ monthlyFromDeposit, depositFromMonthly, effectiveRate });
+	});
+});
+</script>
+{% endblock %}
