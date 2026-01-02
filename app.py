@@ -18,6 +18,8 @@ def _get_int_env(name: str) -> int | None:
 @app.context_processor
 def inject_ad_config():
     return {
+        "coupang_widget_iframe_src": os.getenv("COUPANG_WIDGET_IFRAME_SRC", "").strip() or None,
+        "coupang_widget_iframe_height": _get_int_env("COUPANG_WIDGET_IFRAME_HEIGHT") or 575,
         "coupang_partners_id": _get_int_env("COUPANG_PARTNERS_ID"),
         "coupang_tracking_code": os.getenv("COUPANG_TRACKING_CODE", "").strip() or None,
         "coupang_template": os.getenv("COUPANG_TEMPLATE", "carousel").strip() or "carousel",
