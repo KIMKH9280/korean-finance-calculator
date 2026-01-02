@@ -2,6 +2,10 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
+@app.route('/health')
+def health_check():
+    return {"status": "ok"}, 200
+
 @app.route('/')
 def index():
     return render_template('index.html')
