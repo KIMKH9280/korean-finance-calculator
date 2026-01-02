@@ -1,6 +1,29 @@
+import os
+
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
+
+
+def _get_int_env(name: str) -> int | None:
+    value = os.getenv(name, "").strip()
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
+@app.context_processor
+def inject_ad_config():
+    return {
+        "coupang_partners_id": _get_int_env("COUPANG_PARTNERS_ID"),
+        "coupang_tracking_code": os.getenv("COUPANG_TRACKING_CODE", "").strip() or None,
+        "coupang_template": os.getenv("COUPANG_TEMPLATE", "carousel").strip() or "carousel",
+        "coupang_width": _get_int_env("COUPANG_WIDTH") or 260,
+        "coupang_height": _get_int_env("COUPANG_HEIGHT") or 300,
+    }
 
 @app.route('/health')
 def health_check():
